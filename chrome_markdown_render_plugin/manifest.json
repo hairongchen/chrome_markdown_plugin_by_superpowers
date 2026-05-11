@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Markdown Renderer",
+  "version": "1.0.0",
+  "description": "自动渲染 .md 文件为 GitHub 风格的 Markdown 页面",
+  "content_scripts": [
+    {
+      "matches": ["*://*/*.md", "file://*/*.md"],
+      "js": ["lib/marked.min.js", "content.js"],
+      "css": ["github-markdown.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
