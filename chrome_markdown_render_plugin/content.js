@@ -47,20 +47,20 @@
 
   var THEMES = {
     light: {
-      bodyBg: '#ffffff',
-      barBg: '#f6f8fa',
-      barBorder: '1px solid #d0d7de',
-      barColor: '#586069',
-      btnBg: 'rgba(0,0,0,0.06)',
-      btnHover: 'rgba(0,0,0,0.12)'
+      bodyBg: 'linear-gradient(180deg, #f0f4ff 0%, #ffffff 200px)',
+      barBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      barBorder: 'none',
+      barColor: '#ffffff',
+      btnBg: 'rgba(102, 126, 234, 0.15)',
+      btnHover: 'rgba(102, 126, 234, 0.3)'
     },
     dark: {
-      bodyBg: '#0d1117',
-      barBg: '#161b22',
-      barBorder: '1px solid #30363d',
-      barColor: '#8b949e',
-      btnBg: 'rgba(255,255,255,0.1)',
-      btnHover: 'rgba(255,255,255,0.2)'
+      bodyBg: 'linear-gradient(180deg, #0d1320 0%, #0d1117 200px)',
+      barBg: 'linear-gradient(135deg, #1a1c2e 0%, #2d1b4e 100%)',
+      barBorder: 'none',
+      barColor: '#c9d1d9',
+      btnBg: 'rgba(102, 126, 234, 0.2)',
+      btnHover: 'rgba(102, 126, 234, 0.4)'
     }
   };
 
@@ -77,7 +77,7 @@
     state.theme = theme;
     var colors = THEMES[theme];
 
-    document.body.style.backgroundColor = colors.bodyBg;
+    document.body.style.background = colors.bodyBg;
 
     if (state.wrapper) {
       state.wrapper.setAttribute('data-color-mode', theme);
@@ -164,6 +164,8 @@
       btn.style.justifyContent = 'center';
       btn.style.padding = '0';
       btn.style.lineHeight = '1';
+      btn.style.backdropFilter = 'blur(8px)';
+      btn.style.webkitBackdropFilter = 'blur(8px)';
       var colors = THEMES[state.theme];
       btn.style.background = colors.btnBg;
       btn.addEventListener('mouseenter', function () {
