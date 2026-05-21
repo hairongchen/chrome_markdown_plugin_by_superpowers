@@ -52,7 +52,10 @@
       barBorder: 'none',
       barColor: '#ffffff',
       btnBg: 'rgba(102, 126, 234, 0.15)',
-      btnHover: 'rgba(102, 126, 234, 0.3)'
+      btnHover: 'rgba(102, 126, 234, 0.3)',
+      tocBg: 'rgba(255, 255, 255, 0.85)',
+      tocColor: '#24292f',
+      tocHover: 'rgba(102, 126, 234, 0.1)'
     },
     dark: {
       bodyBg: 'linear-gradient(180deg, #0d1320 0%, #0d1117 200px)',
@@ -60,7 +63,10 @@
       barBorder: 'none',
       barColor: '#c9d1d9',
       btnBg: 'rgba(102, 126, 234, 0.2)',
-      btnHover: 'rgba(102, 126, 234, 0.4)'
+      btnHover: 'rgba(102, 126, 234, 0.4)',
+      tocBg: 'rgba(13, 17, 23, 0.85)',
+      tocColor: '#c9d1d9',
+      tocHover: 'rgba(102, 126, 234, 0.15)'
     }
   };
 
@@ -70,7 +76,10 @@
     wrapper: null,
     bar: null,
     themeBtn: null,
-    immersiveBtn: null
+    immersiveBtn: null,
+    tocPanel: null,
+    tocBtn: null,
+    tocItems: []
   };
 
   function applyTheme(theme) {
@@ -99,6 +108,19 @@
     if (state.immersiveBtn) {
       state.immersiveBtn.style.background = colors.btnBg;
     }
+
+    if (state.tocPanel) {
+      state.tocPanel.style.background = colors.tocBg;
+      state.tocPanel.style.color = colors.tocColor;
+    }
+    if (state.tocBtn) {
+      state.tocBtn.style.background = colors.btnBg;
+    }
+    state.tocItems.forEach(function (item) {
+      if (!item.classList.contains('toc-active')) {
+        item.style.color = colors.tocColor;
+      }
+    });
   }
 
   function applyImmersive(immersive) {
@@ -229,6 +251,206 @@
     applyImmersive(immersive);
 
     createFloatingButtons();
+    createProgressBar();
+    createTOC();
+  }
+
+  function createTOC() {
+    var article = document.querySelector('.markdown-body');
+    if (!article) return;
+
+    var headings = article.querySelectorAll('h1, h2, h3');
+    if (headings.length === 0) return;
+
+    var colors = THEMES[state.theme];
+
+    var panel = document.createElement('nav');
+    panel.style.position = 'fixed';
+    panel.style.top = '40px';
+    panel.style.left = '16px';
+    panel.style.width = '220px';
+    panel.style.maxHeight = 'calc(100vh - 80px)';
+    panel.style.overflowY = 'auto';
+    panel.style.background = colors.tocBg;
+    panel.style.color = colors.tocColor;
+    panel.style.backdropFilter = 'blur(12px)';
+    panel.style.webkitBackdropFilter = 'blur(12px)';
+    panel.style.borderRadius = '8px';
+    panel.style.padding = '12px 0';
+    panel.style.zIndex = '10001';
+    panel.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+    panel.style.fontSize = '13px';
+    panel.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.08)';
+    state.tocPanel = panel;
+
+    var tocBtn = document.createElement('button');
+    tocBtn.textContent = '\u{1F4D1}';
+    tocBtn.style.position = 'fixed';
+    tocBtn.style.bottom = '30px';
+    tocBtn.style.left = '30px';
+    tocBtn.style.width = '40px';
+    tocBtn.style.height = '40px';
+    tocBtn.style.borderRadius = '50%';
+    tocBtn.style.border = 'none';
+    tocBtn.style.cursor = 'pointer';
+    tocBtn.style.fontSize = '18px';
+    tocBtn.style.display = 'none';
+    tocBtn.style.alignItems = 'center';
+    tocBtn.style.justifyContent = 'center';
+    tocBtn.style.padding = '0';
+    tocBtn.style.lineHeight = '1';
+    tocBtn.style.backdropFilter = 'blur(8px)';
+    tocBtn.style.webkitBackdropFilter = 'blur(8px)';
+    tocBtn.style.background = colors.btnBg;
+    tocBtn.style.zIndex = '10001';
+    tocBtn.addEventListener('mouseenter', function () {
+      tocBtn.style.background = THEMES[state.theme].btnHover;
+    });
+    tocBtn.addEventListener('mouseleave', function () {
+      tocBtn.style.background = THEMES[state.theme].btnBg;
+    });
+    state.tocBtn = tocBtn;
+
+    var overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+    overlay.style.zIndex = '10000';
+    overlay.style.display = 'none';
+
+    tocBtn.addEventListener('click', function () {
+      panel.style.display = 'block';
+      overlay.style.display = 'block';
+    });
+    overlay.addEventListener('click', function () {
+      panel.style.display = 'none';
+      overlay.style.display = 'none';
+    });
+
+    var items = [];
+    headings.forEach(function (heading, index) {
+      var id = 'toc-heading-' + index;
+      heading.id = id;
+
+      var item = document.createElement('div');
+      item.textContent = heading.textContent;
+      item.style.padding = '4px 12px';
+      item.style.cursor = 'pointer';
+      item.style.borderLeft = '2px solid transparent';
+      item.style.transition = 'background 0.15s, border-color 0.15s';
+      item.style.whiteSpace = 'nowrap';
+      item.style.overflow = 'hidden';
+      item.style.textOverflow = 'ellipsis';
+
+      var tag = heading.tagName;
+      if (tag === 'H2') item.style.paddingLeft = '24px';
+      if (tag === 'H3') item.style.paddingLeft = '36px';
+
+      item.addEventListener('mouseenter', function () {
+        item.style.background = THEMES[state.theme].tocHover;
+      });
+      item.addEventListener('mouseleave', function () {
+        if (!item.classList.contains('toc-active')) {
+          item.style.background = 'transparent';
+        }
+      });
+      item.addEventListener('click', function () {
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (window.matchMedia('(max-width: 1199px)').matches) {
+          panel.style.display = 'none';
+          overlay.style.display = 'none';
+        }
+      });
+
+      items.push({ el: item, heading: heading });
+      panel.appendChild(item);
+    });
+
+    state.tocItems = items.map(function (i) { return i.el; });
+
+    var activeItem = null;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var match = items.find(function (i) { return i.heading === entry.target; });
+          if (match) {
+            if (activeItem) {
+              activeItem.style.borderLeftColor = 'transparent';
+              activeItem.style.fontWeight = 'normal';
+              activeItem.style.background = 'transparent';
+              activeItem.classList.remove('toc-active');
+            }
+            match.el.style.borderLeftColor = '#667eea';
+            match.el.style.fontWeight = '600';
+            match.el.style.background = THEMES[state.theme].tocHover;
+            match.el.classList.add('toc-active');
+            activeItem = match.el;
+          }
+        }
+      });
+    }, { rootMargin: '0px 0px -80% 0px', threshold: 0 });
+
+    items.forEach(function (i) { observer.observe(i.heading); });
+
+    var mql = window.matchMedia('(min-width: 1200px)');
+    function handleWidth(e) {
+      if (e.matches) {
+        panel.style.display = 'block';
+        tocBtn.style.display = 'none';
+        overlay.style.display = 'none';
+      } else {
+        panel.style.display = 'none';
+        tocBtn.style.display = 'flex';
+      }
+    }
+    handleWidth(mql);
+    mql.addEventListener('change', handleWidth);
+
+    document.body.appendChild(panel);
+    document.body.appendChild(tocBtn);
+    document.body.appendChild(overlay);
+  }
+
+  function createProgressBar() {
+    var progressBar = document.createElement('div');
+    progressBar.style.position = 'fixed';
+    progressBar.style.bottom = '0';
+    progressBar.style.left = '0';
+    progressBar.style.height = '3px';
+    progressBar.style.width = '0%';
+    progressBar.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    progressBar.style.zIndex = '10001';
+    progressBar.style.transition = 'width 0.1s linear';
+    document.body.appendChild(progressBar);
+
+    var ticking = false;
+    function updateProgress() {
+      var scrollTop = window.scrollY || document.documentElement.scrollTop;
+      var scrollHeight = document.documentElement.scrollHeight;
+      var clientHeight = document.documentElement.clientHeight;
+      if (scrollHeight <= clientHeight) {
+        progressBar.style.display = 'none';
+        return;
+      }
+      progressBar.style.display = 'block';
+      var progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
+      progressBar.style.width = progress + '%';
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        requestAnimationFrame(function () {
+          updateProgress();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    updateProgress();
   }
 
   if (!isPlainTextPage()) return;
